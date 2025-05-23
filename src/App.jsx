@@ -10,6 +10,8 @@ import {
 import BlogPostList from "./components/BlogPostList/BlogPostList";
 import BlogPostDetail from "./components/BlogPostDetail/BlogPostDetail";
 import BlogPostForm from "./components/BlogPostForm/BlogPostForm";
+import DeleteButton from "./components/DeleteButton/DeleteButton";
+import ConfirmationDialog from "./components/ConfirmationDialogue/ConfirmationDialogue";
 
 // Sample initial posts
 const initialPosts = [
@@ -75,7 +77,7 @@ const stripHtml = (html) => {
 };
 
 // Posts list page
-const PostsPage = ({ posts }) => {
+const PostsPage = ({ posts, setPosts }) => {
   const navigate = useNavigate();
   return (
     <div>
@@ -111,12 +113,18 @@ const PostsPage = ({ posts }) => {
 };
 
 // Single post detail page
-const PostPage = ({ posts }) => {
+const PostPage = ({ posts, setPosts }) => {
   const { id } = useParams();
   const navigate = useNavigate();
   const post = posts.find((p) => p.id === id);
-
-  if (!post) return <p>Blog post not found.</p>;
+  const [isDialogOpen, setIsDialogOpen] = useState(false);
+  
+  const handleDelete = () => {
+    const updatedPosts = posts.filter((post) => post.id !== id);
+    setPosts(updatedPosts);
+    navigate("/posts");
+  };
+if (!post) return <p>Blog post not found.</p>;
 
   return (
     <div style={{ position: "relative", maxWidth: "800px", margin: "0 auto" }}>
@@ -141,6 +149,14 @@ const PostPage = ({ posts }) => {
       </button>
 
       <BlogPostDetail {...post} />
+      <div style={{ marginTop: "30px", textAlign: "center" }}>
+        <DeleteButton onClick={() => setIsDialogOpen(true)} />
+        <ConfirmationDialog
+          isOpen={isDialogOpen}
+          onClose={() => setIsDialogOpen(false)}
+          onConfirm={handleDelete}
+        />
+      </div>
     </div>
   );
 };
@@ -203,7 +219,7 @@ const App = () => {
         <Routes>
           <Route path="/posts" element={<PostsPage posts={posts} />} />
           <Route path="/posts/new" element={<CreatePost onCreate={handleCreatePost} />} />
-          <Route path="/posts/:id" element={<PostPage posts={posts} />} />
+          <Route path="/posts/:id" element={<PostPage posts={posts} setPosts={setPosts} />} />
           <Route path="/posts/:id/edit" element={<EditPost posts={posts} onUpdate={handleUpdatePost} />} />
           <Route path="*" element={<Navigate to="/posts" replace />} />
         </Routes>
